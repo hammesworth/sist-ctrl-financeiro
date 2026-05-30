@@ -1,47 +1,53 @@
-import { Despesa } from './app.js';
+import { Despesa } from './funcs.js';
+import { orcamentoRestante } from './funcs.js';
 
 export const gerarStats = (despesas) => {
+
+    const orcamento = orcamentoRestante();
+
     const gastos = despesas.reduce((a, d) => a + d.valor, 0);
 
+    const restante = orcamento - gastos;
+    const estourou = restante < 0;
+
     const valores = despesas.map(d => d.valor);
+    const vazia = valores.length === 0;
 
-    const maiorGasto = Math.max(...valores);
-    const menorGasto = Math.min(...valores);
+    const maiorGasto = vazia ? 0 : Math.max(...valores);
+    const menorGasto = vazia ? 0 : Math.min(...valores);
 
-    const media = Number((gastos / despesas.length).toFixed(2));
+    const media = vazia ? 0 : Number((gastos / despesas.length).toFixed(2));
 
     const maiorQueCem = valores.filter(v => v > 100).length;
 
-    const categorias = despesas.reduce((acc, despesa) => {
+    const categorias = despesas.reduce((acumulador, despesa) => {
 
-        if (!acc[despesa.categoria]) {
-            acc[despesa.categoria] = {
+        if (!acumulador[despesa.categoria]) {
+            acumulador[despesa.categoria] = {
                 total: 0,
                 itens: [],
                 quantidade: 0
             };
         }
 
-        // soma valores
-        acc[despesa.categoria].total += despesa.valor;
+        acumulador[despesa.categoria].total += despesa.valor;
 
-        // adiciona item
-        acc[despesa.categoria].itens.push(despesa);
+        acumulador[despesa.categoria].itens.push(despesa);
 
-        // quantidade de itens
-        acc[despesa.categoria].quantidade++;
+        acumulador[despesa.categoria].quantidade++;
 
-        return acc;
+        return acumulador;
 
     }, {});
 
-    const categoriaMaiorGasto = Object.entries(categorias)
-        .sort((a, b) => b[1].total - a[1].total)[0];
+    const entries = Object.entries(categorias);
+    const sortedMaior = [...entries].sort((a, b) => b[1].total - a[1].total);
+    const sortedMenor = [...entries].sort((a, b) => a[1].total - b[1].total);
 
-    const categoriaMenorGasto = Object.entries(categorias)
-        .sort((a, b) => a[1].total - b[1].total)[0];
+    const maior = sortedMaior[0] || ['-', { total: 0 }];
+    const menor = sortedMenor[0] || ['-', { total: 0 }];
 
-    const perc = despesas.map((despesa) => {
+    const perc = vazia ? [] : despesas.map((despesa) => {
 
         const per = `${((despesa.valor / gastos) * 100).toFixed(0)}%`;
 
@@ -53,6 +59,9 @@ export const gerarStats = (despesas) => {
 
     return {
         gastos,
+        restante,
+        estourou,
+
         maiorGasto,
         menorGasto,
         media,
@@ -61,13 +70,13 @@ export const gerarStats = (despesas) => {
         categorias,
 
         categoriaMaiorGasto: {
-            nome: categoriaMaiorGasto[0],
-            total: categoriaMaiorGasto[1].total
+            nome: maior[0],
+            total: maior[1].total
         },
 
         categoriaMenorGasto: {
-            nome: categoriaMenorGasto[0],
-            total: categoriaMenorGasto[1].total
+            nome: menor[0],
+            total: menor[1].total
         },
 
         perc
@@ -81,6 +90,14 @@ export const campoStats = (stats) => {
     estatisticas.innerHTML = `
         <div class="item">
             <strong>Total gasto:</strong> R$ ${stats.gastos.toFixed(2)}
+        </div>
+
+        <div class="item">
+            <strong>Orçamento restante:</strong>
+            ${stats.estourou
+                ? `⚠️ R$ ${Math.abs(stats.restante).toFixed(2)} acima do orçamento`
+                : `R$ ${stats.restante.toFixed(2)}`
+            }
         </div>
 
         <div class="item">

@@ -1,89 +1,92 @@
+// Imports
+import * as funcs from './funcs.js';
 import { gerarStats, campoStats } from './stats.js';
-import { bar, pie } from './graficos.js';
-
-/*
-1. Ao clicar em btnAdicionar
-1.1 Nova despesa no array despesas
-1.2 Adicionar despesa na lista
-1.3 Gerar estatísticas
-*/
+import { bar, pie, doughnut } from './graficos.js';
 
 const btn = document.querySelector("#btnAdicionar");
-const despesas = [];
+const selectOrdenacao = document.querySelector("#ordenacao");
+const campoOrcamento = document.querySelector("#orcamento");
 
-/**
- * Função geradora de objetos "despesa"
- * @param {*} desc 
- * @param {*} valor 
- */
-export const Despesa = function (descricao = "não informado", categoria = "não informada", valor = 0) {
-    this.descricao = descricao;
-    this.categoria = categoria;
-    this.valor = valor;
+campoOrcamento.addEventListener("input", () => {
+    localStorage.setItem(
+        "orcamento",
+        campoOrcamento.value
+    );
+});
+
+function atualizar() {
+    funcs.carregarLista();
+
+    const stats = gerarStats(funcs.despesas);
+
+    localStorage.setItem("stats", JSON.stringify(stats));
+
+    campoStats(stats);
+    bar(stats);
+    pie(stats);
+    doughnut(stats);
 }
 
-const criarDespesa = () => {
-    const descricao = document.querySelector("#descricao").value;
-    const valor = parseFloat(document.querySelector("#valor").value);
-    const categoria = document.querySelector("#categoria").value;
+window.atualizar = atualizar;
 
-    // 1.1 Nova despesa no array despesas
-    const despesaNova = new Despesa(descricao, categoria, valor);
-    despesas.push(despesaNova);
-}
+// Recupera dados do localStorage
+window.addEventListener("DOMContentLoaded", () => {
 
-const carregarLista = () => {
+    const orcamentoSalvo = localStorage.getItem("orcamento");
 
-    // Recuperar o elemento lista e zerar ele
-    const lista = document.querySelector("#lista");
-    lista.innerHTML = '';
-
-    despesas.forEach((despesas, idx) => {
-
-        // Criar um elemento div
-        const div = document.createElement("div");
-        div.classList.add("item");
-
-        // Adicionar o texto da descrição e valor
-        div.textContent = `• Item ${idx + 1}: Descrição: ${despesas.descricao} - Categoria: ${despesas.categoria} - Valor: R$ ${(despesas.valor).toFixed(2)}`;
-
-        // Adicionar o elemento div na lista
-        lista.appendChild(div);
-    })
-}
-
-const validarDados = (descricao, categoria, valor) => {
-
-    if (Number.isNaN(valor) || valor < 0) {
-        alert("Valor inválido!");
-        return false;
+    if (orcamentoSalvo) {
+        document.querySelector("#orcamento").value = orcamentoSalvo;
     }
 
-    if (descricao.trim() === "" || categoria.trim() === "") {
-        alert("Descrição e/ou categoria inserida incorretamente!");
-        return false;
-    }
+    funcs.carregarLocalStorage();
+    funcs.carregarLista();
 
-    return true;
-}
+    const stats = gerarStats(funcs.despesas);
 
-// 1. Ao clicar em btnAdicionar
+    campoStats(stats);
+    bar(stats);
+    pie(stats);
+    doughnut(stats);
+});
+
 btn.addEventListener("click", () => {
 
+    // Recupera elementos do HTML
     const descricao = document.querySelector("#descricao").value;
     const categoria = document.querySelector("#categoria").value;
     const valor = parseFloat(document.querySelector("#valor").value);
 
-    // Validar os dados antes de adicionar
-    if (!validarDados(descricao, categoria, valor)) {
+    // Valida os dados antes de adicionar
+    if (!funcs.validarDados(descricao, categoria, valor)) {
         return;
     }
 
-    criarDespesa();
-    carregarLista();
-    const stats = gerarStats(despesas);
+    // Cria uma despesa
+    funcs.criarDespesa();
+
+    // Carrega a despesa na lista
+    funcs.carregarLista();
+
+    // Gera um dado "stats" com as estatísticas geradas por gerarStats
+    const stats = gerarStats(funcs.despesas);
+
+    // Salva no localStorage
+    localStorage.setItem("stats", JSON.stringify(stats));
+
+    // Gera o campo "estatísticas" no div de id #estatisticas
     campoStats(stats);
 
+    // Criam os gráficos
     bar(stats);
     pie(stats);
+    doughnut(stats);
+});
+
+selectOrdenacao.addEventListener("change", () => {
+
+    funcs.ordenarDespesas(
+        selectOrdenacao.value
+    );
+
+    atualizar();
 });

@@ -3,7 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <title>Controle Financeiro</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
 </head>
 <body>
@@ -12,26 +16,26 @@
 
     <h1>💰 Controle Financeiro</h1>
 
-    <input type="text" id="descricao" placeholder="Descrição">
-
-    <input type="number" id="valor" placeholder="Valor">
-
-    <select id="categoria">
-
-      <option value="" disabled selected hidden>
-        Escolha uma categoria
-      </option>
-
-      <option value="Tecnologia">Tecnologia</option>
-      <option value="Moda">Moda</option>
-      <option value="Jogos">Jogos</option>
-      <option value="Alimentos">Alimentos</option>
-      <option value="Eletrodomésticos">Eletrodomésticos</option>
-    </select>
+    <div class="form-grid">
+      <input type="text" id="descricao" placeholder="Descrição">
+      <input type="number" id="valor" placeholder="Valor (R$)">
+      <input type="text" id="categoria" placeholder="Categoria (ex: Transporte, Saúde, Lazer)">
+      <input type="number" id="orcamento" placeholder="Orçamento total (R$)">
+    </div>
 
     <button id="btnAdicionar">
-      Adicionar Despesa
+      <i class="fa-solid fa-plus"></i> Adicionar Despesa
     </button>
+
+    <div class="toolbar">
+      <label for="ordenacao">Ordenar por:</label>
+      <select id="ordenacao">
+        <option value="normal">Ordem original</option>
+        <option value="maior">Maior gasto</option>
+        <option value="menor">Menor gasto</option>
+        <option value="descricao">Descrição (A-Z)</option>
+      </select>
+    </div>
 
     <div id="lista"></div>
 
@@ -44,6 +48,7 @@
   <div id="grafico">
     <canvas id="pizza"></canvas>
     <canvas id="pie"></canvas>
+    <canvas id="doughnut"></canvas>
   </div>
   
 
